@@ -23,88 +23,79 @@ aalImg=$package_DIR'aal.nii'
 echo "=============== begin measurement... ========"
 
 #----- processing training images
-cd $data_root'train/'
+cd ${output_path}train/
 subIDs=`ls`
 
 for subID in $subIDs 
 do
-	echo "Processing training image "$subID
-     fileext='.nii.gz'
-     file=$subID
-     basename $file $fileext
-     filename="${file%%.*}"
- 
+    echo "Processing training image "$subID
+    fileext='.nii.gz'
+    file=$subID
+    filename=$(basename "$file" "$fileext")
+    
+    subGMMask=$train_output_path$filename'_GM.nii.gz'
 
-  
-     subGMMask=$train_output_path$filename'_greymatter_mask.nii.gz'
+    echo " >>>> Create measurements for "$filename"  <<<<<<"
+    source ${root_path}/code/CreateSeedMask $train_output_path $filename$fileext 
+    echo "i am done!"
+    seedMask_path=${train_output_path}'seedMasks/'
+    cd $seedMask_path
+    mask_IMGs=`ls | wc -l`	
+    
+    echo -n $filename >> ${train_output_path}"AAL_statistics_volume_train.csv"
 
-     echo " >>>> Create measurements for "$filename"  <<<<<<"
-     source ${root_path}/CreateSeedMask $train_output_path 'AAL_to_'$filename$fileext 
-	echo "i am done!"
-     seedMask_path=$train_output_path'seedMasks/'
- 	cd $seedMask_path
-	mask_IMGs=`ls | wc -l`	
-            
-     echo -n $filename >> ${train_output_path}"AAL_statistics_volumn_train.csv"
+    for i in $(eval echo {1..$mask_IMGs}); 
+    do
+        echo "i: "${i}
+        # Calculate volume and save it into csv file
+        mask_img="${i}.nii.gz"
+        volume=$(fslstats $mask_img -V | awk '{print $2}')
+        echo -n ",$volume" >> ${train_output_path}"AAL_statistics_volume_train.csv"
+    done
+    echo "" >> ${train_output_path}"AAL_statistics_volume_train.csv"
 
-	for i in $(eval echo {1..$mask_IMGs}); 
-	do
-	        echo "i: "${i}
-          	#Calculate volume and save it into csv file
- 		#TODO
- 		mask_img="mask_${i}.nii.gz"
-        	volume=$(fslstats $mask_img -V | awk '{print $2}')
-        	echo -n ",$volume" >> ${train_output_path}"AAL_statistics_volume_train.csv"
-     	done
-	echo "" >> ${train_output_path}"AAL_statistics_volume_train.csv"
-	#TODO
-
-    	rm '-rf' $seedMask_path   
-     	cd $data_root'train/'
+    rm -rf $seedMask_path   
+    cd ${output_path}train/
 
 done
 
 #----- processing test images
-cd $data_root'test/'
+cd ${output_path}test/
 subIDs=`ls`
 
 for subID in $subIDs 
 do
-	echo "Processing test image "$subID
-     fileext='.nii.gz'
-     file=$subID
-     basename $file $fileext
-     filename="${file%%.*}"
+    echo "Processing test image "$subID
+    fileext='.nii.gz'
+    file=$subID
+    filename=$(basename "$file" "$fileext")
+    
+    subGMMask=$test_output_path$filename'_GM.nii.gz'
 
-     subGMMask=$test_output_path$filename'_greymatter_mask.nii.gz'
+    echo " >>>> Create measurements for "$filename"  <<<<<<"
+    source ${root_path}/code/CreateSeedMask $test_output_path $filename$fileext 
 
-     echo " >>>> Create measurements for "$filename"  <<<<<<"
-     source ${root_path}/CreateSeedMask $test_output_path 'AAL_to_'$filename$fileext 
+    seedMask_path=${test_output_path}'seedMasks/'
+    cd $seedMask_path
+    mask_IMGs=`ls | wc -l`	
+    
+    echo -n $filename >> ${test_output_path}"AAL_statistics_volume_test.csv"
 
-     seedMask_path=$test_output_path'seedMasks/'
- 	cd $seedMask_path
-	mask_IMGs=`ls | wc -l`	
-            
-     echo -n $filename >> ${test_output_path}"AAL_statistics_volumn_test.csv"
+    for i in $(eval echo {1..$mask_IMGs}); 
+    do
+        echo "i: "${i}
+        # Calculate volume and save it into csv file
+        mask_img="${i}.nii.gz"
+        volume=$(fslstats $mask_img -V | awk '{print $2}')
+        echo -n ",$volume" >> ${test_output_path}"AAL_statistics_volume_test.csv"
+    done
+    echo "" >> ${test_output_path}"AAL_statistics_volume_test.csv"
 
-	for i in $(eval echo {1..$mask_IMGs}); 
-	do
-          	echo "i: "${i}
-          	#Calculate volume and save it into csv file
-          	#TODO
-          	mask_img="mask_${i}.nii.gz"
-        	volume=$(fslstats $mask_img -V | awk '{print $2}')
-        	echo -n ",$volume" >> ${test_output_path}"AAL_statistics_volume_test.csv"
- 		
-     	done
-	#TODO
-	echo "" >> ${test_output_path}"AAL_statistics_volume_test.csv"
-
-
-     rm '-rf' $seedMask_path   
-     cd $data_root'test/'
+    rm -rf $seedMask_path   
+    cd ${output_path}test/
          
 done
 
 
 #==================== End of measurement  =========#
+

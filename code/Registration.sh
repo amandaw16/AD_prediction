@@ -48,6 +48,8 @@ do
     	reg_resample -ref $file -flo aalImg -res ${filename}_transformed_aal.nii.gz -trans ${filename}_warpcoeff.nii.gz -inter 0 
      #remove files no longer needed
 	#TODO
+	echo "Removing intermediate files for $filename"
+    	rm -f "${filename}_MNI2Native_affine.txt" "${filename}_warpcoeff.nii.gz"
 done
 
 #---- process test images
@@ -78,5 +80,7 @@ do
     	reg_resample -ref $file -flo aalImg -res ${filename}_transformed_aal.nii.gz -trans ${filename}_warpcoeff.nii.gz -inter 0 
      #remove files no longer needed
      #TODO
+     	echo "Removing intermediate files for $filename"
+    	rm -f "${filename}_MNI2Native_affine.txt" "${filename}_warpcoeff.nii.gz"
 done
 #==================== End of registration ===============#
