@@ -1,0 +1,89 @@
+#!/bin/bash
+
+#---------------- Folder Arrangement -----------------#
+#                                                     #
+#                                       |- train      #
+#         		 	  |- Data|- test       #
+# ~/home/elec5622/AD_prediction  |- Packages          #
+#         		          |- Output|- train    #
+#                                         |- test     #
+#                                                     #
+#-----------------------------------------------------#  
+
+
+root_path='/home/elec5622/AD_prediction'
+data_root=$root_path'/Data/'
+package_DIR=$root_path'/Packages/'
+
+output_path=$root_path'/Output/'
+train_output_path=$root_path'/Output/train/'
+test_output_path=$root_path'/Output/test/'
+
+train_grey_matter_dir=$root_path'/Output/train/grey_matter_maps'
+test_grey_matter_dir=$root_path'/Output/test/grey_matter_maps'
+train_misc_files_dir=$root_path'/Output/train/misc_outputs'
+test_misc_files_dir=$root_path'/Output/test/misc_outputs'
+
+mkdir -p "$train_grey_matter_dir"
+mkdir -p "$test_grey_matter_dir"
+mkdir -p "$train_misc_files_dir"
+mkdir -p "$test_misc_files_dir"
+
+#================== Grey matter segmentation ==========#
+echo "=============== begin grey matter segmentation...========"
+
+#----- processing training images
+cd $output_path'train/'
+subIDs=`ls`
+
+for subID in $subIDs 
+do
+	echo "Processing training image "$subID
+     	fileext='.nii.gz'
+     	file=$subID
+    	basename $file $fileext
+     	filename="${file%%.*}"
+
+     	#tissue segmentation
+     	base=$train_misc_files_dir$filename
+
+    	
+    	# -t type of image n=1 for T1 weighted
+    	# -n number of tissue type classes
+    	# -o basename for outputs
+    	 
+     	fast -t 1 -n 3 -o $base $subID
+     	# mixel type output from FAST - mixed tissue type proababilities
+     	# pve partial volume estimate for 0: CSF, 1:GM, 2:WM
+     	# _pveseg segmentation image that combines PVE data into a single segmented image
+     	# rename the segmented grey matter image file
+     	mv "${train_output_path}"/*_pve_1.nii.gz "$train_grey_matter_dir"
+     	find "${train_output_path}" -type f ! -name "*_pve_1.nii.gz" -exec mv {} "${train_misc_files_dir}" \;
+     	done
+
+
+#---- processing test images
+cd $output_path'test/'
+subIDs=`ls`
+
+for subID in $subIDs 
+do
+echo "Processing test image "$subID
+
+     	fileext='.nii.gz'
+     	file=$subID
+     	basename $file $fileext
+     	filename=$file
+     	filename="${file%%.*}"
+
+     	#tissue segmentation
+     	base=$test_misc_files_dir$filename
+     	fast -t 1 -n 3 -o $base $subID
+     	# rename the segmented grey matter image file
+     	mv "${test_output_path}"/*_pve_1.nii.gz "$test_grey_matter_dir"
+     	find "${test_output_path}" -type f ! -name "*_pve_1.nii.gz" -exec mv {} "${test_misc_files_dir}" \;
+     	
+done
+
+#Please carefully check the segmented grey matter mask visually using fsleyes to ensure the result is correct.#
+#============= End of Grey matter segmentation=================#

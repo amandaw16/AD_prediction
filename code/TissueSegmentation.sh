@@ -1,16 +1,17 @@
 #!/bin/bash
 
+#---------------- Folder Arrangement -----------------#
+#                                                     #
+#                                       |- train      #
+#         		 	  |- Data|- test       #
+# ~/home/elec5622/AD_prediction  |- Packages          #
+#         		          |- Output|- train    #
+#                                         |- test     #
+#                                                     #
+#-----------------------------------------------------#  
 
-#---------------- Folder Arrangement ------------#
-#                  |- train                      #
-#         |- Data -|- test                       #
-# ~/home -|- Packages                            #
-#         |- Output -|- train                    #
-#                    |- test                     #
-#------------------------------------------------#
 
-
-root_path='/home/elec5622'
+root_path='/home/elec5622/AD_prediction'
 data_root=$root_path'/Data/'
 package_DIR=$root_path'/Packages/'
 
@@ -18,15 +19,19 @@ output_path=$root_path'/Output/'
 train_output_path=$root_path'/Output/train/'
 test_output_path=$root_path'/Output/test/'
 
+
+
 #================== Grey matter segmentation ==========#
 echo "=============== begin grey matter segmentation...========"
 
 #----- processing training images
-cd $root_path'/Output/train/'
+cd $output_path'train/'
 subIDs=`ls`
 
 for subID in $subIDs 
 do
+
+	
 	echo "Processing training image "$subID
      	fileext='.nii.gz'
      	file=$subID
@@ -35,16 +40,23 @@ do
 
      	#tissue segmentation
      	base=$train_output_path$filename
-     	#TODO
+	
+    	
+    	# -t type of image n=1 for T1 weighted
+    	# -n number of tissue type classes
+    	# -o basename for outputs
+    	 
      	fast -t 1 -n 3 -o $base $subID
-     	mv ${base}_pve_0.nii.gz $train_output_path/CSF/${filename}_CSF.nii.gz
-    	mv ${base}_pve_1.nii.gz $train_output_path/GM/${filename}_GM.nii.gz
-    	mv ${base}_pve_2.nii.gz $train_output_path/WM/${filename}_WM.nii.gz
+     	# mixel type output from FAST - mixed tissue type proababilities
+     	# pve partial volume estimate for 0: CSF, 1:GM, 2:WM
+     	# _pveseg segmentation image that combines PVE data into a single segmented image
+     	# rename the segmented grey matter image file
+
      	done
 
 
 #---- processing test images
-cd $root_path'/Output/test/'
+cd $output_path'test/'
 subIDs=`ls`
 
 for subID in $subIDs 
@@ -59,12 +71,13 @@ echo "Processing test image "$subID
 
      	#tissue segmentation
      	base=$test_output_path$filename
-     	#TODO 
      	fast -t 1 -n 3 -o $base $subID
-     	mv ${base}_pve_0.nii.gz $test_output_path/CSF/${filename}_CSF.nii.gz
-    	mv ${base}_pve_1.nii.gz $test_output_path/GM/${filename}_GM.nii.gz
-    	mv ${base}_pve_2.nii.gz $test_output_path/WM/${filename}_WM.nii.gz
+     	
+     	
+     	
+     	
 done
+
 
 #Please carefully check the segmented grey matter mask visually using fsleyes to ensure the result is correct.#
 #============= End of Grey matter segmentation=================#
