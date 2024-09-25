@@ -14,19 +14,19 @@ data_root=$root_path'/Data/'
 package_DIR=$root_path'/Packages/'
 
 output_path=$root_path'/Output/'
-train_output_path=$root_path'/Output/train/'
-test_output_path=$root_path'/Output/test/'
+train_output_path=$root_path'/Output/train/data/'
+test_output_path=$root_path'/Output/test/data/'
 floImg=$package_DIR'MNI152_T1_1mm_brain.nii'
 aalImg=$package_DIR'aal.nii'
 
+#====================  registration =======================#
 echo "=============== begin registration... ========"
 
 #---- process training images
-#-----these are the extracted brain images in the train folder of Output folder
-cd $train_output_path
-train_brain_imgs=$(find "$train_output_path" -type f \( -name "AD_*_brain.nii.gz" -o -name "NC_*_brain.nii.gz" \) -exec mv {} "$brain_imgs_train" \);
+cd $output_path'train/'
+subIDs=`ls`
 
-for subID in $train_brain_imgs 
+for subID in $subIDs 
 do
    	echo "Processing training image "$subID
      	refImg=$subID
@@ -51,11 +51,10 @@ do
 done
 
 #---- process test images
-cd $test_output_path
-test_brain_imgs=$(find "$test_output_path" -type f \( -name "AD_*_brain.nii.gz" -o -name "NC_*_brain.nii.gz" \) -exec mv {} "$brain_imgs_test" \);
+cd $output_path'test/'
+subIDs=`ls`
 
-
-for subID in $test_brain_imgs 
+for subID in $subIDs 
 do
    	echo "Processing test image "$subID
      	refImg=$subID
