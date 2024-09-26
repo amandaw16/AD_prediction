@@ -8,8 +8,7 @@
 #                    |- test                     #
 #------------------------------------------------#
 
-
-root_path='/home/elec5622'
+root_path='/home/elec5622/AD_prediction'
 data_root=$root_path'/Data/'
 package_DIR=$root_path'/Packages/'
 
@@ -23,7 +22,7 @@ aalImg=$package_DIR'aal.nii'
 echo "=============== begin measurement... ========"
 
 #----- processing training images
-cd ${output_path}train/
+cd $output_path'train/GM/'
 subIDs=`ls`
 
 for subID in $subIDs 
@@ -31,36 +30,36 @@ do
     echo "Processing training image "$subID
     fileext='.nii.gz'
     file=$subID
-    filename=$(basename "$file" "$fileext")
-    
+    filename="${file%%.*}"
+
     subGMMask=$train_output_path$filename'_GM.nii.gz'
 
     echo " >>>> Create measurements for "$filename"  <<<<<<"
     source ${root_path}/code/CreateSeedMask $train_output_path $filename$fileext 
-    echo "i am done!"
-    seedMask_path=${train_output_path}'seedMasks/'
+    echo "Seed mask creation completed for "$filename
+
+    seedMask_path=$train_output_path'seedMasks/'
     cd $seedMask_path
-    mask_IMGs=`ls | wc -l`	
+    mask_IMGs=`ls | wc -l`  # Counting the number of masks created
     
     echo -n $filename >> ${train_output_path}"AAL_statistics_volume_train.csv"
 
-    for i in $(eval echo {1..$mask_IMGs}); 
+    for mask_img in $(ls *.nii.gz); 
     do
-        echo "i: "${i}
-        # Calculate volume and save it into csv file
-        mask_img="${i}.nii.gz"
+        echo "Processing mask image: $mask_img"
+        # Calculate volume and append to csv file
         volume=$(fslstats $mask_img -V | awk '{print $2}')
         echo -n ",$volume" >> ${train_output_path}"AAL_statistics_volume_train.csv"
     done
     echo "" >> ${train_output_path}"AAL_statistics_volume_train.csv"
 
+    # Remove seed mask directory after processing
     rm -rf $seedMask_path   
-    cd ${output_path}train/
-
+    cd $output_path'train/GM/'
 done
 
 #----- processing test images
-cd ${output_path}test/
+cd $output_path'test/GM/'
 subIDs=`ls`
 
 for subID in $subIDs 
@@ -68,34 +67,33 @@ do
     echo "Processing test image "$subID
     fileext='.nii.gz'
     file=$subID
-    filename=$(basename "$file" "$fileext")
-    
+    filename="${file%%.*}"
+
     subGMMask=$test_output_path$filename'_GM.nii.gz'
 
     echo " >>>> Create measurements for "$filename"  <<<<<<"
     source ${root_path}/code/CreateSeedMask $test_output_path $filename$fileext 
+    echo "Seed mask creation completed for "$filename
 
-    seedMask_path=${test_output_path}'seedMasks/'
+    seedMask_path=$test_output_path'seedMasks/'
     cd $seedMask_path
-    mask_IMGs=`ls | wc -l`	
+    mask_IMGs=`ls | wc -l`  # Counting the number of masks created
     
     echo -n $filename >> ${test_output_path}"AAL_statistics_volume_test.csv"
 
-    for i in $(eval echo {1..$mask_IMGs}); 
+    for mask_img in $(ls *.nii.gz); 
     do
-        echo "i: "${i}
-        # Calculate volume and save it into csv file
-        mask_img="${i}.nii.gz"
+        echo "Processing mask image: $mask_img"
+        # Calculate volume and append to csv file
         volume=$(fslstats $mask_img -V | awk '{print $2}')
         echo -n ",$volume" >> ${test_output_path}"AAL_statistics_volume_test.csv"
     done
     echo "" >> ${test_output_path}"AAL_statistics_volume_test.csv"
 
+    # Remove seed mask directory after processing
     rm -rf $seedMask_path   
-    cd ${output_path}test/
-         
+    cd $output_path'test/GM/'
 done
-
 
 #==================== End of measurement  =========#
 
