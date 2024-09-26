@@ -19,8 +19,8 @@ package_DIR=$root_path'/Packages/'
 output_path=$root_path'/Output/'
 train_output_path=$root_path'/Output/train/'
 test_output_path=$root_path'/Output/test/'
-floImg=$package_DIR'MNI152_T1_1mm_brain.nii'
-aalImg=$package_DIR'aal.nii'
+floImg=$package_DIR'MNI152_T1_1mm_brain.nii.gz'
+aalImg=$package_DIR'aal.nii.gz'
 brain_imgs_train=$root_path'/Output/brain_imgs_train'
 brain_imgs_test=$root_path'/Output/brain_imgs_test'
 
@@ -30,9 +30,15 @@ echo "=============== begin registration... ========"
 #---- process training images
 #-----these are the extracted brain images in the train folder of Output folder
 cd $train_output_path
-train_brain_imgs=$(find "$train_output_path" -type f \( -name "AD_*_brain.nii.gz" -o -name "NC_*_brain.nii.gz" \) -exec mv {} "$brain_imgs_train" \);
+echo "===========Printing the current directory ======"
+pwd
 
-for subID in $train_brain_imgs 
+# ---- retrieve only the brain files to a folder called brain_imgs_train
+find "$train_output_path" -type f \( -name "AD_*_brain.nii.gz" -o -name "NC_*_brain.nii.gz" \) -exec mv {} "$brain_imgs_train" \;
+train_brain_imgs=$(find "$brain_imgs_train" -type f)
+
+# ----only for training -----
+for subID in $train_brain_imgs; 
 do
    	echo "Processing training image "$subID
      	refImg=$subID
@@ -51,39 +57,7 @@ do
 	reg_f3d -ref $file -flo $floImg -aff ${filename}_MNI2Native_affine.txt -res ${filename}_MNI152_T1_native_warp.nii.gz -cpp ${filename}_warpcoeff.nii.gz
      #transform AAL atlas
     	#TODO
-    	reg_resample -ref $file -flo aalImg -res ${filename}_transformed_aal.nii.gz -trans ${filename}_warpcoeff.nii.gz -inter 0 
+    	reg_resample -ref $file -flo $aalImg -res ${filename}_transformed_aal.nii.gz -trans ${filename}_warpcoeff.nii.gz -inter 0 
      #remove files no longer needed
 	#TODO
 done
-
-#---- process test images
-cd $test_output_path
-test_brain_imgs=$(find "$test_output_path" -type f \( -name "AD_*_brain.nii.gz" -o -name "NC_*_brain.nii.gz" \) -exec mv {} "$brain_imgs_test" \);
-
-
-for subID in $test_brain_imgs 
-do
-   	echo "Processing test image "$subID
-     	refImg=$subID
-
-     fileext='.nii.gz'
-     file=$subID
-     basename $file $fileext
-     filename=$file
-     filename="${file%%.*}"
-
-	#affine registration
-     	echo "Register MNI template using affine transform"
-     	reg_aladin -ref $file -flo $floImg -res ${filename}_MNI152_T1_native_affine.nii.gz -aff ${filename}_MNI2Native_affine.txt
-	#TODO
-     #deformable registration
-     	echo "Register MNI template using deformable transform"
-     	reg_f3d -ref $file -flo $floImg -aff ${filename}_MNI2Native_affine.txt -res ${filename}_MNI152_T1_native_warp.nii.gz -cpp ${filename}_warpcoeff.nii.gz
-	#TODO
-     #transform AAL atlas
-    	#TODO
-    	reg_resample -ref $file -flo aalImg -res ${filename}_transformed_aal.nii.gz -trans ${filename}_warpcoeff.nii.gz -inter 0 
-     #remove files no longer needed
-     #TODO
-done
-#==================== End of registration ===============#
