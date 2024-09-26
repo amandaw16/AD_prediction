@@ -22,7 +22,7 @@ aalImg=$package_DIR'aal.nii'
 echo "=============== begin measurement... ========"
 
 #----- processing training images
-cd $output_path'train/GM/'
+cd $output_path'train/Grey matter/'
 subIDs=`ls`
 
 for subID in $subIDs 
@@ -32,7 +32,7 @@ do
     file=$subID
     filename="${file%%.*}"
 
-    subGMMask=$train_output_path$filename'_GM.nii.gz'
+    subGMMask=$train_output_path$filename'_greymatter_mask.nii.gz'
 
     echo " >>>> Create measurements for "$filename"  <<<<<<"
     source ${root_path}/code/CreateSeedMask $train_output_path $filename$fileext 
@@ -55,11 +55,11 @@ do
 
     # Remove seed mask directory after processing
     rm -rf $seedMask_path   
-    cd $output_path'train/GM/'
+    cd $output_path'train/Grey matter/'
 done
 
 #----- processing test images
-cd $output_path'test/GM/'
+cd $output_path'test/Grey matter/'
 subIDs=`ls`
 
 for subID in $subIDs 
@@ -69,7 +69,7 @@ do
     file=$subID
     filename="${file%%.*}"
 
-    subGMMask=$test_output_path$filename'_GM.nii.gz'
+    subGMMask=$test_output_path$filename'_greymatter_mask.nii.gz'
 
     echo " >>>> Create measurements for "$filename"  <<<<<<"
     source ${root_path}/code/CreateSeedMask $test_output_path $filename$fileext 
@@ -92,7 +92,7 @@ do
 
     # Remove seed mask directory after processing
     rm -rf $seedMask_path   
-    cd $output_path'test/GM/'
+    cd $output_path'test/Grey matter/'
 done
 
 #==================== End of measurement  =========#
