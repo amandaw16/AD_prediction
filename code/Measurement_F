@@ -1,0 +1,81 @@
+#!/bin/bash
+
+
+#---------------- Folder Arrangement -----------------#
+#
+
+
+#---------------- Folder Arrangement -----------------#
+#                                                     #
+#                                       |- train      #
+#         		 	  |- Data|- test       #
+# ~/home/elec5622/AD_prediction  |- Packages          #
+#         		          |- Output|- train    #
+#                                         |- test     #
+#                                                     #
+#-----------------------------------------------------#     
+
+
+root_path='/home/elec5622/AD_prediction'
+data_root=$root_path'/Data/'
+package_DIR=$root_path'/Packages/'
+
+output_path=$root_path'/Output/'
+train_output_path=$root_path'/Output/train/'
+test_output_path=$root_path'/Output/test/'
+floImg=$package_DIR'MNI152_T1_1mm_brain.nii.gz'
+aalImg=$package_DIR'aal.nii.gz'
+brains=$root_path'/brain'
+gm_pth=$root_path'/Grey matter/'
+trans_aal_pth=$root_path'/trans_brain_aal/'
+
+
+#====================  measurement =======================#
+echo "=============== begin measurement... ========"
+
+#----- processing all 50 images
+# this should be the extracted brain data
+# TODO
+cd $brains
+pwd
+subIDs=`ls`
+
+for subID in $subIDs 
+do
+	echo "Processing image "$subID
+     fileext='.nii.gz'
+     file=$subID
+     basename $file $fileext
+     filename="${file%%.*}"
+ 
+
+     #grey matter mask path
+     subGMMask=$gm_pth$filename'_greymatter_mask.nii.gz'
+
+     echo " >>>> Create measurements for "$filename"  <<<<<<"
+     source ${root_path}/code/CreateSeedMask $trans_aal_pth $filename'_transformed_aal.nii.gz'
+	echo "i am done!"
+     seedMask_path=$trans_aal_pth'seedMasks/'
+ 	cd $seedMask_path
+	mask_IMGs=ls | wc -l	
+            
+     echo -n $filename >> ${trans_aal_pth}"AAL_statistics_volume.csv"
+
+	#for i in $(eval echo {1..$mask_IMGs}); 
+	ls | head -n 90 | while read seedMask;
+	do
+	        #echo "i: "${i}
+          	#Calculate volume and save it into csv file
+ 		#TODO
+ 		volume=$(fslstats ${seedMask} -V )
+ 		echo -n ",$volume" >> ${trans_aal_pth}"AAL_statistics_volume.csv"
+     	done
+	
+	#TODO
+	echo "" >> ${trans_aal_pth}"AAL_statistics_volume.csv" #move to next line
+
+    	rm '-rf' $seedMask_path   
+     	cd $brains
+
+done
+#==================== End of measurement  =========#
